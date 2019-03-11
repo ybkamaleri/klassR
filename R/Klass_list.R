@@ -14,34 +14,34 @@ GetNums <- function(x){
 #'
 #' @return text in json format
 GetUrl <- function(url){
-  hent_klass <- httr::GET (url) ## henter innholdet fra klass med acceptheader json
-  hent_klass_text <- httr::content(hent_klass, "text") ## deserialisering med httr funksjonen content
-  hent_klass_json <- jsonlite::fromJSON(hent_klass_text)
-  return(hent_klass_json)
+  hent_klass <- httr::GET(url) ## henter innholdet fra klass med acceptheader json
+  klass_text <- httr::content(hent_klass, "text") ## deserialisering med httr funksjonen content
+  klass_data <- jsonlite::fromJSON(klass_text)
+  return(klass_data)
 }
 
 
 
 #' Classification list
-#' Print a full list of all classifications and codelists
+#' Get a full list of all classifications and codelists
 #'
 #' @param codelists True/False for whether to include codelists. Default = FALSE
 #'
-#' @return A data frame containing a full list of classifications. Dataframe includes the classification name, number, family and type.
+#' @return A data frame containing a full list of classifications. The data frame includes the classification name, number, family and type.
 #' @export
 #'
 #' @examples
 #' K <- KlassList(codelists = TRUE)
 #' View(K)
 KlassList <- function(codelists = FALSE){
-  fams <- FamilyList()$Family_nr
-  Klist <- data.frame(Klass_name = NA, Klass_nr = NA, Klass_family = NA, Klass_type = NA)
+  fams <- FamilyList()$family_nr
+  Klist <- data.frame(klass_name = NA, klass_nr = NA, klass_family = NA, klass_type = NA)
   code <- ifelse(codelists, "?includeCodelists=true", "")
   for (i in fams){
     url <- paste('http://data.ssb.no/api/klass/v1/classificationfamilies/', i, code, sep ="")
     dt <- data.frame(GetUrl(url)$classifications)
     nums <- as.vector(sapply(dt$X_links[, 1], GetNums))
-    dt2 <- data.frame(Klass_name = dt$name, Klass_nr = nums, Klass_family = i, Klass_type = dt$classificationType)
+    dt2 <- data.frame(klass_name = dt$name, klass_nr = nums, klass_family = i, klass_type = dt$classificationType)
     Klist <- rbind(Klist, dt2)
     }
   return(Klist[-1, ])
@@ -70,15 +70,15 @@ FamilyList <- function(family=NULL, codelists = FALSE){
     url <- paste('http://data.ssb.no/api/klass/v1/classificationfamilies', code, sep="")
     dt <- data.frame(GetUrl(url)$'_embedded'$classificationFamilies)
     nums <- as.vector(sapply(dt$X_links$self$href, FUN = GetNums))
-    dt2 <- data.frame(Family_name = dt$name, Family_nr = nums,
-                      Number_of_classifications = dt$numberOfClassifications)
+    dt2 <- data.frame(family_name = dt$name, family_nr = nums,
+                      number_of_classifications = dt$numberOfClassifications)
   }
   if (!is.null(family)){
     family <- MakeChar(family)
     url <- paste('http://data.ssb.no/api/klass/v1/classificationfamilies/', family, code, sep ="")
     dt <- data.frame(GetUrl(url)$classifications)
     nums <- as.vector(sapply(dt$X_links[, 1], GetNums))
-    dt2 <- data.frame(Klass_name = dt$name, Klass_nr = nums)
+    dt2 <- data.frame(klass_name = dt$name, klass_nr = nums)
     row.names(dt2) <- NULL
   }
   return(dt2)
@@ -106,7 +106,7 @@ SearchKlass <- function(query, codelists = FALSE, size = 20){
   url <- paste('http://data.ssb.no/api/klass/v1/classifications/search?query=', query, code, "&size=", size, sep ="")
   dt <- data.frame(GetUrl(url)$'_embedded'$searchResults)
   nums <- as.vector(sapply(dt$X_links$self$href, GetNums))
-  dt2 <- data.frame(Klass_name = dt$name, Klass_nr = nums)
+  dt2 <- data.frame(klass_name = dt$name, klass_nr = nums)
   row.names(dt2) <- NULL
   return(dt2)
 }
@@ -117,7 +117,7 @@ SearchKlass <- function(query, codelists = FALSE, size = 20){
 #' @param klass Classification number
 #' @param date Date for version to be valid
 #' @param family Family ID number if a list of version number for all classes is desired
-#' @param klass_nr True/False for whether to output classification numbers. Default = FALSE
+#' @param klassNr True/False for whether to output classification numbers. Default = FALSE
 #'
 #' @return Number, vector or data frame with version numbers and calssification numbers if specified.
 #' @export
@@ -126,11 +126,11 @@ SearchKlass <- function(query, codelists = FALSE, size = 20){
 #' GetVersion(7)
 #' GetVersion(7, "2010-01-01")
 #' GetVersion(family = 1)
-#' GetVersion(family = 1, klass_nr = TRUE)
-GetVersion <- function(klass=NULL,  date=NULL, family = NULL, klass_nr=FALSE){
+#' GetVersion(family = 1, klassNr = TRUE)
+GetVersion <- function(klass=NULL,  date=NULL, family = NULL, klassNr=FALSE){
   if(is.null(date)) date <- Sys.Date()
   if(is.null(family)){
-    if (klass_nr == TRUE) stop("To output Klass number from this function you need to input a family number")
+    if (klassNr == TRUE) stop("To output Klass number from this function you need to input a family number")
     klass <- MakeChar(klass)
     url <- paste("http://data.ssb.no/api/klass/v1/classifications/", klass, sep="")
     df <- as.data.frame(GetUrl(url)$versions)
@@ -145,8 +145,8 @@ GetVersion <- function(klass=NULL,  date=NULL, family = NULL, klass_nr=FALSE){
     family = MakeChar(family)
     fam <- FamilyList(family, codelists = TRUE)
     vers <- NULL
-    klassNr <- NULL
-    for (i in fam$Klass_nr){
+    klass_nr <- NULL
+    for (i in fam$klass_nr){
       url <- paste("http://data.ssb.no/api/klass/v1/classifications/", i, sep="")
       df <- as.data.frame(GetUrl(url)$versions)
       if(is.null(df$validTo)) df$validTo <- as.character(Sys.Date() + 1)
@@ -155,12 +155,12 @@ GetVersion <- function(klass=NULL,  date=NULL, family = NULL, klass_nr=FALSE){
         cond <- as.Date(date) >= as.Date(df$validFrom[j]) & as.Date(date) < as.Date(df$validTo[j])
         if (cond) {
           vers <- c(vers, GetNums(df$`_links`$self$href[j]))
-          klassNr <- c(klassNr, i)
+          klass_nr <- c(klass_nr, i)
         }
       }
     }
-    if(klass_nr == TRUE){
-      vers <- data.frame(vers, klassNr)
+    if(klassNr == TRUE){
+      vers <- data.frame(vers, klass_nr)
     }
   }
 return(vers)
@@ -202,8 +202,8 @@ GetName <- function(version){
 GetFamily <- function(klass){
   klass <- MakeChar(klass)
   K <- KlassList(codelists = TRUE)
-  m <- match(klass, K$Klass_nr)
-  return(K$Klass_family[m])
+  m <- match(klass, K$klass_nr)
+  return(K$klass_family[m])
  }
 
 
@@ -236,7 +236,7 @@ CorrespondList <- function(klass, date = NULL){
   versName <- df$name
   dt <- data.frame(df$correspondenceTables)
   fam <- GetFamily(klass = klass)
-  versValid <- GetVersion(family=fam, date = date, klass_nr = TRUE)
+  versValid <- GetVersion(family=fam, date = date, klassNr = TRUE)
   vers_names <- GetName(versValid$vers)
   source_klass <- NULL
   target_klass <- NULL
@@ -245,18 +245,17 @@ CorrespondList <- function(klass, date = NULL){
     m <- match(versName, c(dt$source[i], dt$target[i]))
     findName <- ifelse(m == 2, dt$source[i], dt$target[i])
     m2 <- match(findName, vers_names)
-    m2
     newdate <- date
     counter = 0
     while(is.na(m2) & counter < 10){ # hvis versjonen ikke ble funnet på date søkes det tilbake i tid
       newdate <- as.character(as.Date(newdate) - 60)
-      versValidold <- GetVersion(family=fam, date = newdate, klass_nr = TRUE)
+      versValidold <- GetVersion(family=fam, date = newdate, klassNr = TRUE)
       vers_names <- GetName(versValidold$vers)
       m2 <- match(findName, vers_names)
       counter = counter + 1
       cat('.')
     }
-    sourceTarget <- ifelse(is.na(m2), NA, as.character(versValid[m2, "klassNr"]))
+    sourceTarget <- ifelse(is.na(m2), NA, as.character(versValid[m2, "klass_nr"]))
     source_klass[i] <- ifelse(m == 1, klass, sourceTarget)
     target_klass[i] <- ifelse(m == 1, sourceTarget, klass)
   }
@@ -267,6 +266,8 @@ CorrespondList <- function(klass, date = NULL){
                     correspondence_table, stringsAsFactors=FALSE)
   row.names(dt2) <- NULL
   dt2$target_klass[dt2$source_klass == dt2$target_klass] <- NA #dropping target for tables within version
+
+  if (any(is.na(dt2$target_klass))) warning("\n\n There are correspondence tables within classification ",klass," (between different time points). Use the changes = TRUE option in the KLASS and GetKLASS functions to get these\n ")
   return(dt2)
 }
 
