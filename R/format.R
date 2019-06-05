@@ -85,10 +85,10 @@ formattering <- function(x, input_level, klass, klass_data){
   }
 
   if (riktig != 0 | mangler0 != 0 | miss != 0 | manglerDot != 0){
-    warning(c("antall riktige: ", riktig))
-    warning(c("antall mangler 0:", mangler0))
-    warning(c("antall mangler .:" , manglerDot))
-    warning(c("antall satt som missing:", miss))
+   # warning(c("Number correct: ", riktig)) # Fungere ikke for andre variabel enn nace
+    warning(c("Number missing leading 0:", mangler0))
+    warning(c("Number missing .:" , manglerDot))
+    warning(c("Number of NA:", miss))
   }
 
   return(verdi)
