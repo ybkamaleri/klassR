@@ -11,6 +11,9 @@ splitChar(x, dot)
 
 \item{dot}{- the place of missing dots}
 }
+\value{
+Returns a value
+}
 \description{
 insert missing dots to the right place in a string
 }

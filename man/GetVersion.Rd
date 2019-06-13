@@ -4,7 +4,8 @@
 \alias{GetVersion}
 \title{Get version number of a class given a date}
 \usage{
-GetVersion(klass = NULL, date = NULL, family = NULL, klassNr = FALSE)
+GetVersion(klass = NULL, date = NULL, family = NULL,
+  klassNr = FALSE)
 }
 \arguments{
 \item{klass}{Classification number}
